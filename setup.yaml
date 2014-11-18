@@ -1,0 +1,55 @@
+---
+- hosts: dockers
+  vars:
+    user: "gitstarinc"
+    repo: "nodegit-http"
+    git_dir: "/home/linode/"
+
+  sudo: yes
+
+  tasks:
+#- name: make sure linode stuff is spooled up and running
+#    local_action:
+#        module: linode
+#        name: gitstar-docker
+
+  - name: make sure we have docker apt key
+    apt_key: keyserver=keyserver.ubuntu.com id=36A1D7869245C8950F966E92D8576A8BA88D21E9
+
+  - name: make sure we have docker apt repo
+    apt_repository: repo='deb https://get.docker.com/ubuntu docker main' state=present
+
+  - name: install docker
+    apt: name=lxc-docker update_cache=yes state=latest
+
+  - name: check if pip installed
+    stat: path=/usr/local/bin/pip
+    register: st
+
+  - name: download pip (apt version has a bug breaking it hard)
+    get_url: url=https://bootstrap.pypa.io/get-pip.py dest=/tmp mode=0740
+    when: not st.stat.exists
+
+  - name: installs pip
+    command: /usr/bin/python /tmp/get-pip.py creates=/usr/local/bin/pip
+
+  - name: install docker-py
+    pip: name=docker-py state=latest
+
+  - name: ensure mongodb container is running
+    docker: image=mongo:latest name=mongo
+
+  - name: grab from github (so sad...for now)
+    git: repo=https://github.com/{{ user }}/{{ repo }}.git dest=/tmp/{{ repo }} accept_hostkey=true
+
+  - name: copy Dockerfile
+    copy:
+        content: "FROM node:0.11{{ '\n' }}EXPOSE 3000"
+        dest: /tmp/{{ repo }}/Dockerfile
+
+  - name: make docker image
+    command: docker build -t {{ repo }} {{ repo }} chdir=/tmp
+
+  - name: ensure node container is running
+    docker: image={{ repo }}:latest links=mongo:mongo name=node-{{ repo }}
+

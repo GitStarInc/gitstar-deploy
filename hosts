@@ -1,0 +1,5 @@
+[dockers]
+linode
+
+[dockers:vars]
+test_var=test_var_value
