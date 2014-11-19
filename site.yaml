@@ -8,10 +8,14 @@
   sudo: yes
 
   tasks:
-#- name: make sure linode stuff is spooled up and running
-#    local_action:
-#        module: linode
-#        name: gitstar-docker
+  - name: make sure linode stuff is spooled up and running
+    sudo: no
+    local_action:
+        module: linode
+        api_key: '{{ linode_api_key }}'
+        name: gitstar-docker
+        linode_id: 729506
+        state: started
 
   - name: make sure we have docker apt key
     apt_key: keyserver=keyserver.ubuntu.com id=36A1D7869245C8950F966E92D8576A8BA88D21E9
