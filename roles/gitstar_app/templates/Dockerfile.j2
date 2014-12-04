@@ -1,0 +1,7 @@
+FROM node:0.11
+MAINTAINER Gitstar, Inc. <info@gitstar.com>
+EXPOSE {{ app_port }}
+COPY . /{{ app_name }}
+RUN cd /{{ app_name }}; npm install
+WORKDIR /{{ app_name }}
+CMD ["npm", "start"]

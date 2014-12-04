@@ -1,0 +1,11 @@
+---
+- hosts: dockers
+  sudo: yes
+  roles:
+    - reverse_proxy
+    - { role: gitstar_app, app_name: 'tycho', port: 8081, app_port: 3000, user: 'gitstarinc', repo: 'nodegit-http' }
+    - { role: gitstar_app, app_name: 'galileo', port: 8082, app_port: 3000, user: 'gitstarinc', repo: 'nodegit-http' }
+  tasks:
+    - name: reload nginx on container (if it is running)
+      command: /usr/bin/docker kill -s HUP proxy
+

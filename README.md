@@ -18,3 +18,10 @@ Some sensitive information is source controlled but encrypted to ensure some lev
 ```sh
 ansible-vault edit <filename>
 ```
+
+# Extras
+I recommend installing this [vim plugin](https://github.com/chase/vim-ansible-yaml) to help make sure syntax is correct.
+
+# TODO
+- Look into ambassador pattern for linking from coreos
+- ...

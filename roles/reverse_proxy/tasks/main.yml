@@ -1,0 +1,9 @@
+---
+- name: run nginx reverse proxy container
+  docker:
+    image: nginx:latest
+    ports: 8080:80
+    name: proxy
+    state: running
+    volumes:
+      - /tmp/nginx.conf.d/:/etc/nginx/conf.d/:ro

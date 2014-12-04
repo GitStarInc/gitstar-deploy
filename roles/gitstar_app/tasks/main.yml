@@ -1,0 +1,16 @@
+---
+- name: grab from github (so sad...for now)
+  git: repo=https://github.com/{{ user }}/{{ repo }}.git dest=/tmp/{{ app_name }} accept_hostkey=true
+
+- name: copy Dockerfile
+  template: src=Dockerfile.j2 dest="/tmp/{{ app_name }}/Dockerfile" mode=0644
+
+- name: make docker image
+  command: docker build -t {{ app_name }} {{ app_name }} chdir=/tmp
+
+- name: ensure node container is running
+  docker: image={{ app_name }}:latest name=node-{{ app_name }} ports=127.0.0.1:{{ port }}:{{ app_port }}
+
+- name: make sure nginx template is in place
+  template: src=nginx.conf.j2 dest="/tmp/nginx.conf.d/{{ app_name }}.conf" mode=0644
+
