@@ -22,7 +22,7 @@
 - name: figure out if we have an entry for the domain already
   shell: echo {{ item }}
   register: found_domain
-  when: item.NAME == '{{ app_name }}'
+  when: item.NAME == '{{ app_name }}' and item.TYPE == 'A'
   with_items: domains.json.DATA
 
 - name: add new domain if not in the list
