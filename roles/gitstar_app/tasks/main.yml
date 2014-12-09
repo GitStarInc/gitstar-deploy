@@ -9,8 +9,22 @@
   command: docker build -t {{ app_name }} {{ app_name }} chdir=/tmp
 
 - name: ensure node container is running
-  docker: image={{ app_name }}:latest name=node-{{ app_name }} ports=127.0.0.1:{{ port }}:{{ app_port }}
+  docker: image={{ app_name }}:latest name=node-{{ app_name }}
 
 - name: make sure nginx template is in place
   template: src=nginx.conf.j2 dest="/tmp/nginx.conf.d/{{ app_name }}.conf" mode=0644
+  with_items: docker_containers
 
+- name: get dns records
+  uri: url=https://api.linode.com/?api_key={{ linode_api_key }}&api_action=domain.resource.list&domainid={{ linode_gitstar_domainid }} return_content=yes
+  register: domains
+
+- name: figure out if we have an entry for the domain already
+  shell: echo {{ item }}
+  register: found_domain
+  when: item.NAME == '{{ app_name }}'
+  with_items: domains.json.DATA
+
+- name: add new domain
+  uri: url=https://api.linode.com/?api_key={{ linode_api_key }}&api_action=domain.resource.create&domainid={{ linode_gitstar_domainid }}&type=A&name={{ app_name }}&target={{ ansible_eth0.ipv4.address }} return_content=yes
+  when: not found_domain.changed
