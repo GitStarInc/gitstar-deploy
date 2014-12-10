@@ -1,0 +1,18 @@
+---
+- name: remove nginx template
+  file: path=/tmp/nginx.conf.d/{{ app_name }}.conf state=absent
+  notify:
+    - reload nginx
+
+- name: get dns records
+  uri: url=https://api.linode.com/?api_key={{ linode_api_key }}&api_action=domain.resource.list&domainid={{ linode_gitstar_domainid }} return_content=yes
+  register: domains
+
+- name: delete domain entry
+  uri: url=https://api.linode.com/?api_key={{ linode_api_key }}&api_action=domain.resource.delete&domainid={{ linode_gitstar_domainid }}&resourceid={{ item.RESOURCEID }}
+  register: found_domain
+  when: item.NAME == '{{ app_name }}' and item.TYPE == 'A'
+  with_items: domains.json.DATA
+
+- name: stop docker container
+  docker: name=node-{{ app_name }} image={{ app_name }} state=absent
