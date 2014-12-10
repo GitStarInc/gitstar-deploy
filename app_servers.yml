@@ -3,9 +3,5 @@
   sudo: yes
   roles:
     - reverse_proxy
-    - { role: gitstar_app, app_name: 'tycho', app_port: 3000, user: 'gitstarinc', repo: 'nodegit-http' }
-    - { role: gitstar_app, app_name: 'galileo', app_port: 3000, user: 'gitstarinc', repo: 'nodegit-http' }
-  tasks:
-    - name: reload nginx on container (if it is running)
-      command: /usr/bin/docker kill -s HUP proxy
-
+    - { role: gitstar_create_app, app_name: 'tycho', app_port: 3000, user: 'gitstarinc', repo: 'nodegit-http' }
+    - { role: gitstar_create_app, app_name: 'galileo', app_port: 3000, user: 'gitstarinc', repo: 'nodegit-http' }
