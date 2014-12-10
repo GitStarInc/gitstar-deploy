@@ -3,7 +3,7 @@
   shell: docker images | grep "{{ app_name }} " | awk '{print $2}'
   register: docker_image_list
 
-- name: grab from github (so sad...fo now)
+- name: grab from github (so sad...for now)
   git: repo=https://github.com/{{ user }}/{{ repo }}.git version={{ version|default(omit) }} dest=/tmp/{{ app_name }} accept_hostkey=true
   register: git_result
 
@@ -21,8 +21,17 @@
   command: "docker build -t {{ app_name }}:{{ git_result.after }} {{ app_name }} chdir=/tmp"
   when: not found_image.changed
 
-- name: ensure node container is running
+- name: ensure mongo container is running
+  docker: image=mongo:latest name=mongo-{{ app_name }} state=running
+  when: mongo
+
+- name: ensure node container is running (if we don't have mongo)
   docker: image="{{ app_name }}:{{ git_result.after }}" name=node-{{ app_name }} state=running
+  when: not mongo
+
+- name: ensure node container is running (if we have mongo)
+  docker: image="{{ app_name }}:{{ git_result.after }}" name=node-{{ app_name }} links=mongo-{{ app_name }}:mongo state=running
+  when: mongo
 
 - name: make sure nginx template is in place
   template: src=nginx.conf.j2 dest="/tmp/nginx.conf.d/{{ app_name }}.conf" mode=0644

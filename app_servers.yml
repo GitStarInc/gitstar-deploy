@@ -3,5 +3,17 @@
   sudo: yes
   roles:
     - reverse_proxy
-    - { role: gitstar_create_app, app_name: 'tycho', app_port: 3000, user: 'gitstarinc', repo: 'nodegit-http' }
-    - { role: gitstar_create_app, app_name: 'galileo', app_port: 3000, user: 'gitstarinc', repo: 'nodegit-http' }
+    - { role: gitstar_create_app,
+        app_name: 'tycho',
+        app_port: 3000,
+        user: 'gitstarinc',
+        repo: 'nodegit-http',
+        mongo: true,
+        version: 'HEAD' }
+    - { role: gitstar_create_app,
+        app_name: 'galileo',
+        app_port: 3000,
+        user: 'gitstarinc',
+        repo: 'nodegit-http',
+        mongo: false,
+        version: 'HEAD' }

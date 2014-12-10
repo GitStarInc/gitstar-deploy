@@ -14,5 +14,8 @@
   when: item.NAME == '{{ app_name }}' and item.TYPE == 'A'
   with_items: domains.json.DATA
 
-- name: stop docker container
+- name: stop node container
   docker: name=node-{{ app_name }} image={{ app_name }} state=absent
+
+- name: stop mongo container
+  docker: name=mongo-{{ app_name }} image=mongo:latest state=absent
