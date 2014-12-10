@@ -1,15 +1,28 @@
 ---
-- name: grab from github (so sad...for now)
-  git: repo=https://github.com/{{ user }}/{{ repo }}.git dest=/tmp/{{ app_name }} accept_hostkey=true
+- name: find docker images
+  shell: docker images | grep "{{ app_name }} " | awk '{print $2}'
+  register: docker_image_list
+
+- name: grab from github (so sad...fo now)
+  git: repo=https://github.com/{{ user }}/{{ repo }}.git version={{ version|default(omit) }} dest=/tmp/{{ app_name }} accept_hostkey=true
+  register: git_result
+
+- name: figure out if we already have the docker image
+  shell: echo {{ item }}
+  register: found_image
+  when: git_result.after == item
+  with_items: docker_image_list.stdout_lines
 
 - name: copy Dockerfile
   template: src=Dockerfile.j2 dest="/tmp/{{ app_name }}/Dockerfile" mode=0644
+  when: not found_image.changed
 
 - name: make docker image
-  command: docker build -t {{ app_name }} {{ app_name }} chdir=/tmp
+  command: "docker build -t {{ app_name }}:{{ git_result.after }} {{ app_name }} chdir=/tmp"
+  when: not found_image.changed
 
 - name: ensure node container is running
-  docker: image={{ app_name }}:latest name=node-{{ app_name }}
+  docker: image="{{ app_name }}:{{ git_result.after }}" name=node-{{ app_name }} state=running
 
 - name: make sure nginx template is in place
   template: src=nginx.conf.j2 dest="/tmp/nginx.conf.d/{{ app_name }}.conf" mode=0644
