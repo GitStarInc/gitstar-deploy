@@ -17,8 +17,11 @@
   template: src=Dockerfile.j2 dest="/tmp/{{ app_name }}/Dockerfile" mode=0644
   when: not found_image.changed
 
+- name: set image tag name variable
+  set_fact: app_tag="{{ app_name }}:{{ git_result.after|truncate(10, True, '') }}"
+
 - name: make docker image
-  command: "docker build -t {{ app_name }}:{{ git_result.after }} {{ app_name }} chdir=/tmp"
+  command: "docker build -t {{ app_tag }} {{ app_name }} chdir=/tmp"
   when: not found_image.changed
 
 - name: ensure mongo container is running
@@ -26,11 +29,11 @@
   when: mongo
 
 - name: ensure node container is running (if we don't have mongo)
-  docker: image="{{ app_name }}:{{ git_result.after }}" name=node-{{ app_name }} state=running
+  docker: image={{ app_tag }} name=node-{{ app_name }} state=running
   when: not mongo
 
 - name: ensure node container is running (if we have mongo)
-  docker: image="{{ app_name }}:{{ git_result.after }}" name=node-{{ app_name }} links=mongo-{{ app_name }}:mongo state=running
+  docker: image={{ app_tag }} name=node-{{ app_name }} links=mongo-{{ app_name }}:mongo state=running
   when: mongo
 
 - name: make sure nginx template is in place
